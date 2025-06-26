@@ -117,16 +117,108 @@ def get_favorite_prices(favorites, rates, crypto):
 
 # --- Tema ve Sayfa Ayarları ---
 st.set_page_config(page_title="Döviz & Kripto Borsa Uygulaması", layout="wide")
+
+# --- Modern CSS ve Arka Plan ---
 st.markdown("""
     <style>
-    .big-title {font-size: 2.5rem; font-weight: bold; color: #00b4d8;}
-    .info-card {background: #22223b; color: #fff; border-radius: 1rem; padding: 1.2rem; margin-bottom: 1rem;}
+    body {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%) !important;
+    }
+    .big-title {
+        font-size: 2.7rem;
+        font-weight: bold;
+        color: #00b4d8;
+        letter-spacing: 1px;
+        margin-bottom: 0.7rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+    .info-card {
+        background: rgba(34,34,59,0.97);
+        color: #fff;
+        border-radius: 1.1rem;
+        padding: 1.1rem 1.1rem 0.8rem 1.1rem;
+        margin-bottom: 0.7rem;
+        box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10);
+        transition: transform 0.18s, box-shadow 0.18s;
+        min-height: 120px;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    .info-card:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 18px 0 #00b4d8aa;
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #00b4d8;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
     .positive {color: #06d6a0; font-weight: bold;}
     .negative {color: #ef476f; font-weight: bold;}
+    .market-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.3rem;
+    }
+    .market-table th, .market-table td {
+        padding: 0.35rem 0.5rem;
+        text-align: left;
+    }
+    .market-table th {
+        color: #00b4d8;
+        font-size: 1.08rem;
+        border-bottom: 2px solid #00b4d8;
+    }
+    .market-table tr {
+        border-bottom: 1px solid #33334d;
+    }
+    .market-table tr:last-child { border-bottom: none; }
+    .market-table td.up { color: #06d6a0; font-weight: bold; }
+    .market-table td.down { color: #ef476f; font-weight: bold; }
+    .market-table td.icon { font-size: 1.25rem; }
+    @media (max-width: 900px) {
+        .big-title { font-size: 1.5rem; }
+        .info-card { min-width: 120px; padding: 0.7rem; }
+        .card-title { font-size: 1rem; }
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="big-title">💱 Döviz & Kripto Borsa Uygulaması</div>', unsafe_allow_html=True)
+# --- Tema Geçişi (Karanlık/Açık) ---
+theme = st.sidebar.radio("Tema Seçimi", ["Karanlık", "Açık"], index=0)
+if theme == "Açık":
+    st.markdown("""
+        <style>
+        body { background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%) !important; color: #232526 !important; }
+        .info-card { background: rgba(255,255,255,0.97) !important; color: #232526 !important; }
+        .info-card:hover { background: #e0e7ef !important; color: #0077b6 !important; }
+        .big-title { color: #0077b6 !important; }
+        .market-table th { color: #0077b6 !important; border-bottom: 2px solid #0077b6 !important; }
+        .market-table td { color: #232526 !important; }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <style>
+        body { background: linear-gradient(135deg, #232526 0%, #414345 100%) !important; color: #fff !important; }
+        .info-card { background: rgba(34,34,59,0.97) !important; color: #fff !important; }
+        .info-card:hover { background: #232526 !important; color: #00b4d8 !important; }
+        .big-title { color: #00b4d8 !important; }
+        .market-table th { color: #00b4d8 !important; border-bottom: 2px solid #00b4d8 !important; }
+        .market-table td { color: #fff !important; }
+        </style>
+    """, unsafe_allow_html=True)
+
+st.markdown('<div class="big-title">🔄💱 Döviz & Kripto Borsa Uygulaması</div>', unsafe_allow_html=True)
 
 # --- Verileri Çek ---
 currency_rates = get_currency_rates("USD")
@@ -145,11 +237,12 @@ favorites = st.sidebar.multiselect(
 col_fav, col1, col2, col3 = st.columns([2, 2, 5, 2])
 with col_fav:
     st.markdown('<div class="info-card">', unsafe_allow_html=True)
-    st.subheader("⭐ Favoriler")
+    st.markdown('<div class="card-title">⭐ Favoriler</div>', unsafe_allow_html=True)
     fav_prices = get_favorite_prices(favorites, currency_rates, crypto)
     if fav_prices:
         for name, price in fav_prices:
-            st.write(f"{name}: {price}")
+            icon = "💵" if name == "USD" else ("💶" if name == "EUR" else ("₿" if name == "BTC" else ("Ξ" if name == "ETH" else "🟡")))
+            st.markdown(f'<span style="font-size:1.1rem; font-weight:bold;">{icon} {name}: <span style="color:#06d6a0">{price}</span></span>', unsafe_allow_html=True)
     else:
         st.write("Favori seçilmedi.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -219,6 +312,48 @@ with col3:
     else:
         st.write("Veri yok")
     st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Market Overview Tablosu ---
+def get_market_overview(rates, crypto):
+    fiat_list = ["USD", "EUR", "TRY", "GBP", "JPY"]
+    crypto_map = {"BTC": "bitcoin", "ETH": "ethereum", "BNB": "binancecoin", "SOL": "solana"}
+    market = []
+    # Dövizler
+    if "TRY" in rates:
+        for f in fiat_list:
+            if f != "TRY":
+                price = rates[f]/rates["TRY"]
+                change = "+0.5%" if f in ["USD", "EUR"] else "-0.2%"  # örnek
+                icon = "💵" if f == "USD" else ("💶" if f == "EUR" else ("💷" if f == "GBP" else "💴"))
+                market.append({"icon": icon, "name": f, "price": f"{price:.2f} TRY", "change": change})
+    # Kriptolar
+    for k, v in crypto_map.items():
+        price = crypto.get(v, {}).get("usd")
+        if price:
+            change = "+2.1%" if k == "BTC" else "-1.3%"  # örnek
+            icon = "₿" if k == "BTC" else ("Ξ" if k == "ETH" else ("🟡" if k == "BNB" else "🟣"))
+            market.append({"icon": icon, "name": k, "price": f"${price:,}", "change": change})
+    return market
+
+# --- Market Overview Kutusu ---
+st.markdown('<div class="info-card">', unsafe_allow_html=True)
+st.subheader("📊 Market Overview")
+market = get_market_overview(currency_rates, crypto)
+if market:
+    st.markdown('<table class="market-table">', unsafe_allow_html=True)
+    st.markdown('<tr><th></th><th>Ad</th><th>Fiyat</th><th>Değişim</th></tr>', unsafe_allow_html=True)
+    for row in market:
+        change_class = "up" if "+" in row["change"] else "down"
+        st.markdown(f'<tr>'
+                    f'<td class="icon">{row["icon"]}</td>'
+                    f'<td>{row["name"]}</td>'
+                    f'<td>{row["price"]}</td>'
+                    f'<td class="{change_class}">{row["change"]}</td>'
+                    f'</tr>', unsafe_allow_html=True)
+    st.markdown('</table>', unsafe_allow_html=True)
+else:
+    st.write("Veri yok.")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- CLI Menü Sadece Terminalden Çalıştırıldığında ---
 if __name__ == "__main__":
